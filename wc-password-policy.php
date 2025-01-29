@@ -30,9 +30,9 @@ define( 'WC_PASSWORD_POLICY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
  * @since 1.0.0
  * @return bool True if WooCommerce is active, false otherwise.
  */
-function wc_password_policy_check_woocommerce() {
+function wcpp_password_policy_check_woocommerce() {
     if ( ! class_exists( 'WooCommerce' ) ) {
-        add_action( 'admin_notices', 'wc_password_policy_missing_wc_notice' );
+        add_action( 'admin_notices', 'wcpp_password_policy_missing_wcpp_notice' );
         return false;
     }
     return true;
@@ -44,7 +44,7 @@ function wc_password_policy_check_woocommerce() {
  * @since 1.0.0
  * @return void
  */
-function wc_password_policy_missing_wc_notice() {
+function wcpp_password_policy_missing_wcpp_notice() {
     ?>
     <div class="error">
         <p><?php 
@@ -63,15 +63,15 @@ function wc_password_policy_missing_wc_notice() {
  * @since 1.0.0
  * @return void
  */
-function wc_password_policy_init() {
-    if ( ! wc_password_policy_check_woocommerce() ) {
+function wcpp_password_policy_init() {
+    if ( ! wcpp_password_policy_check_woocommerce() ) {
         return;
     }
     
     // Load plugin text domain
     load_plugin_textdomain( 'wc-password-policy', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 }
-add_action( 'plugins_loaded', 'wc_password_policy_init' );
+add_action( 'plugins_loaded', 'wcpp_password_policy_init' );
 
 /**
  * Add Password Policy tab to WooCommerce settings.
@@ -80,11 +80,11 @@ add_action( 'plugins_loaded', 'wc_password_policy_init' );
  * @param array $settings_tabs Array of WooCommerce setting tabs.
  * @return array Modified array of setting tabs.
  */
-function wc_password_policy_add_settings_tab( $settings_tabs ) {
+function wcpp_password_policy_add_settings_tab( $settings_tabs ) {
     $settings_tabs['password_policy'] = __( 'Password Policy', 'wc-password-policy' );
     return $settings_tabs;
 }
-add_filter( 'woocommerce_settings_tabs_array', 'wc_password_policy_add_settings_tab', 50 );
+add_filter( 'woocommerce_settings_tabs_array', 'wcpp_password_policy_add_settings_tab', 50 );
 
 /**
  * Add settings to the "Password Policy" tab.
@@ -275,7 +275,7 @@ function wcpp_enqueue_password_policy_scripts() {
  * @param WP_User|null $user Optional. User object.
  * @return true|WP_Error True if valid, WP_Error if invalid.
  */
-function wc_password_policy_validate( $password, $user = null ) {
+function wcpp_password_policy_validate( $password, $user = null ) {
     // Check if password policy is enabled
     if ( 'yes' !== get_option( 'password_policy_enabled' ) ) {
         return true;
@@ -372,7 +372,7 @@ function wcpp_validate_registration_password( $errors, $username, $password ) {
         return $errors;
     }
     
-    $validation_result = wc_password_policy_validate( $password );
+    $validation_result = wcpp_password_policy_validate( $password );
     
     if ( is_wp_error( $validation_result ) ) {
         $errors->add( 'password_policy_error', $validation_result->get_error_message() );
@@ -387,7 +387,7 @@ function wcpp_validate_registration_password( $errors, $username, $password ) {
 add_filter( 'woocommerce_reset_password_validation', 'wcpp_validate_password_reset', 10, 3 );
 function wcpp_validate_password_reset( $errors, $user ) {
     if ( isset( $_POST['password_1'] ) && !empty( $_POST['password_1'] ) ) {
-        $validation_result = wc_password_policy_validate( $_POST['password_1'], $user );
+        $validation_result = wcpp_password_policy_validate( $_POST['password_1'], $user );
         
         if ( is_wp_error( $validation_result ) ) {
             $errors->add( 'password_policy_error', $validation_result->get_error_message() );
@@ -456,7 +456,7 @@ function wcpp_redirect_expired_password() {
             ( !in_array( $current_endpoint, $allowed_endpoints ) && !empty( $current_endpoint ) ) || 
             ( empty( $current_endpoint ) && is_account_page() ) ) {
             
-            wp_safe_redirect( wc_get_endpoint_url( 'edit-account', '', wc_get_page_permalink( 'myaccount' ) ) );
+            wp_safe_redirect( wcpp_get_endpoint_url( 'edit-account', '', wcpp_get_page_permalink( 'myaccount' ) ) );
             exit;
         }
     }
@@ -471,7 +471,7 @@ function wcpp_add_password_expired_notice() {
     $password_expired = get_user_meta( $user_id, 'password_expired', true );
 
     if ( '1' === $password_expired ) {
-        wc_print_notice( 
+        wcpp_print_notice( 
             __( 'Your password has expired. Please update your password to continue accessing the store.', 'wc-password-policy' ), 
             'error' 
         );
@@ -505,7 +505,7 @@ function wcpp_restrict_expired_password_access() {
         
         // Redirect away from cart and checkout pages
         if ( is_cart() || is_checkout() ) {
-            wp_safe_redirect( wc_get_endpoint_url( 'edit-account', '', wc_get_page_permalink( 'myaccount' ) ) );
+            wp_safe_redirect( wcpp_get_endpoint_url( 'edit-account', '', wcpp_get_page_permalink( 'myaccount' ) ) );
             exit;
         }
     }
@@ -522,7 +522,7 @@ function wcpp_show_expired_password_admin_notice() {
     if ( '1' === $password_expired && is_admin() ) {
         echo '<div class="error notice">
             <p>' . __( 'Your password has expired. Please update your password to continue using the site.', 'wc-password-policy' ) . ' 
-            <a href="' . esc_url( wc_get_endpoint_url( 'edit-account', '', wc_get_page_permalink( 'myaccount' ) ) ) . '">' . 
+            <a href="' . esc_url( wcpp_get_endpoint_url( 'edit-account', '', wcpp_get_page_permalink( 'myaccount' ) ) ) . '">' . 
             __( 'Update Password', 'wc-password-policy' ) . '</a></p>
         </div>';
     }
@@ -545,7 +545,7 @@ function wcpp_update_password_change_timestamp( $user ) {
 add_action( 'woocommerce_save_account_details_errors', 'wcpp_validate_account_password_change', 10, 2 );
 function wcpp_validate_account_password_change( $errors, $user ) {
     if ( isset( $_POST['password_1'] ) && !empty( $_POST['password_1'] ) ) {
-        $validation_result = wc_password_policy_validate( $_POST['password_1'], $user );
+        $validation_result = wcpp_password_policy_validate( $_POST['password_1'], $user );
         
         if ( is_wp_error( $validation_result ) ) {
             $errors->add( 'password_policy_error', $validation_result->get_error_message() );

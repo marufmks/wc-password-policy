@@ -1,9 +1,9 @@
 === WooCommerce Password Policy ===
 Contributors: marufmks
 Tags: woocommerce, password, security, policy, password-policy
-Requires at least: 5.0
-Tested up to: 6.4
-Requires PHP: 7.2
+Requires at least: 5.6
+Tested up to: 6.7.1
+Requires PHP: 7.4
 Stable tag: 1.0.0
 License: GPL-2.0+
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -28,9 +28,9 @@ WooCommerce Password Policy allows store owners to implement robust password req
 
 = Requirements =
 
-* WordPress 5.0 or higher
+* WordPress 5.6 or higher
 * WooCommerce 3.0 or higher
-* PHP 7.2 or higher
+* PHP 7.4 or higher
 
 == Installation ==
 
